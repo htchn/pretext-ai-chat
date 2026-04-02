@@ -31,7 +31,9 @@ export function App() {
   }, [updateMessages])
 
   const handleEnsureConversation = useCallback(() => {
-    return ensureConversation()
+    const id = ensureConversation()
+    activeIdRef.current = id
+    return id
   }, [ensureConversation])
 
   return (

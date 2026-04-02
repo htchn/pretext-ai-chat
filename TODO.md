@@ -53,9 +53,9 @@
 目标：接入 Pretext，让 Chat 体验从"能用"变成"丝滑"。
 
 ### 2.1 Pretext 引擎封装
-- [ ] `pretext-engine.js`：封装 prepare / layout / shrinkwrap 高层 API
-- [ ] 确保 font string 与 CSS 声明一致（`'14px Inter'` + line-height 22.4px）
-- [ ] 基本测试：给一段文本，输出正确的高度
+- [x] `pretext-engine.js`：封装 prepare / layout / shrinkwrap 高层 API
+- [x] 确保 font string 与 CSS 声明一致（`'14px Inter'` + line-height 22.4px）
+- [x] 基本测试：给一段文本，输出正确的高度
 
 ### 2.2 流式零抖动
 - [ ] 修改 StreamingMessage：每个 token 到达前用 Pretext 预算高度
