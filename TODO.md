@@ -32,13 +32,13 @@
 - [x] key 无效时的错误提示
 
 ### 1.5 基本 Chat 功能
-- [ ] InputBar：多行文本框，Shift+Enter 换行，Enter 发送
-- [ ] 发送按钮：accent 色圆形，未输入时 disabled
-- [ ] 消息列表：用户消息右对齐 + AI 消息左对齐
-- [ ] 统一流式 API 调用（OpenAI 兼容格式，支持自定义 base URL）
-- [ ] 流式输出：逐 token 追加显示
-- [ ] 流式光标闪烁动画（竖线，800ms 周期）
-- [ ] 未配置 API Key 时的友好提示
+- [x] InputBar：多行文本框，Shift+Enter 换行，Enter 发送
+- [x] 发送按钮：accent 色圆形，未输入时 disabled
+- [x] 消息列表：用户消息右对齐 + AI 消息左对齐
+- [x] 统一流式 API 调用（OpenAI 兼容格式，支持自定义 base URL）
+- [x] 流式输出：逐 token 追加显示
+- [x] 流式光标闪烁动画（竖线，800ms 周期）
+- [x] 未配置 API Key 时的友好提示
 
 ### 1.6 对话管理
 - [ ] 新建对话
