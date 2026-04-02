@@ -18,9 +18,9 @@
 - [x] 侧边栏折叠/展开
 
 ### 1.3 主题切换
-- [ ] `useTheme` hook：读写 localStorage，切换 `<html>` 上的 class
-- [ ] 侧边栏底部放主题切换图标（太阳/月亮）
-- [ ] 验证亮色/暗色模式下所有组件颜色正确
+- [x] `useTheme` hook：读写 localStorage，切换 `<html>` 上的 class
+- [x] 侧边栏底部放主题切换图标（太阳/月亮）
+- [x] 验证亮色/暗色模式下所有组件颜色正确
 
 ### 1.4 设置面板
 - [ ] Settings 组件：API Key 输入框（密码模式，可切换显示）
