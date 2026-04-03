@@ -7,16 +7,6 @@
   padding: 0 48px;
 }
 
-.userRow + .assistantRow,
-.assistantRow + .userRow {
-  margin-top: 48px;
-}
-
-.userRow + .userRow,
-.assistantRow + .assistantRow {
-  margin-top: 32px;
-}
-
 /* User message: right-aligned bubble */
 
 .userRow {
