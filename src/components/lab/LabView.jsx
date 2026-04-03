@@ -185,7 +185,7 @@ function AccuracyTest() {
 
     // X axis labels
     ctx.fillStyle = textTertiary
-    ctx.font = '11px Inter'
+    ctx.font = '12px Inter'
     ctx.textAlign = 'center'
     results.forEach(d => {
       ctx.fillText(d.width + '', xScale(d.width), pad.top + ch + 20)
@@ -550,8 +550,10 @@ function ShrinkwrapTest() {
 }
 
 // ============================================================
-// Tab 4: 批量测试
+// Tab 4: 批量测试 — 性能曲线图
 // ============================================================
+
+const BATCH_COUNTS = [100, 500, 1000, 2000, 5000, 10000]
 
 function generateMessages(count) {
   const phrases = [
@@ -566,7 +568,6 @@ function generateMessages(count) {
   ]
   const msgs = []
   for (let i = 0; i < count; i++) {
-    // 1-5 phrases concatenated for varied length
     const n = 1 + (i % 5)
     let t = ''
     for (let j = 0; j < n; j++) {
@@ -577,90 +578,307 @@ function generateMessages(count) {
   return msgs
 }
 
+function runBatchForCount(count) {
+  const msgs = generateMessages(count)
+  const width1 = 600
+  const width2 = 500
+
+  // Round 1: First calculation (prepare + layout vs DOM)
+  const t0 = performance.now()
+  const preparedCache = []
+  for (const msg of msgs) {
+    const prepared = prepare(msg, FONT)
+    preparedCache.push(prepared)
+    layout(prepared, width1, LINE_HEIGHT)
+  }
+  const round1Pretext = performance.now() - t0
+
+  const container = document.createElement('div')
+  container.style.cssText = `position:absolute;visibility:hidden;width:${width1}px;font:400 14px/1.6 Inter;word-wrap:break-word;overflow-wrap:break-word;`
+  document.body.appendChild(container)
+
+  const t2 = performance.now()
+  for (const msg of msgs) {
+    container.textContent = msg
+    container.offsetHeight
+  }
+  const round1Dom = performance.now() - t2
+
+  // Round 2: Relayout (width 600→500)
+  const t4 = performance.now()
+  for (const prepared of preparedCache) {
+    layout(prepared, width2, LINE_HEIGHT)
+  }
+  const round2Pretext = performance.now() - t4
+
+  container.style.width = width2 + 'px'
+  const t6 = performance.now()
+  for (const msg of msgs) {
+    container.textContent = msg
+    container.offsetHeight
+  }
+  const round2Dom = performance.now() - t6
+
+  document.body.removeChild(container)
+
+  return { count, round1Pretext, round1Dom, round2Pretext, round2Dom }
+}
+
+function drawChart(canvas, data, yKey, title, yLabel) {
+  if (!canvas || data.length === 0) return
+
+  const dpr = window.devicePixelRatio || 1
+  const rect = canvas.getBoundingClientRect()
+  canvas.width = rect.width * dpr
+  canvas.height = rect.height * dpr
+  const ctx = canvas.getContext('2d')
+  ctx.scale(dpr, dpr)
+
+  const W = rect.width
+  const H = rect.height
+  const pad = { top: 40, right: 32, bottom: 48, left: 64 }
+  const cw = W - pad.left - pad.right
+  const ch = H - pad.top - pad.bottom
+
+  ctx.clearRect(0, 0, W, H)
+
+  const cs = getComputedStyle(document.documentElement)
+  const textSecondary = cs.getPropertyValue('--text-secondary').trim() || '#888'
+  const textTertiary = cs.getPropertyValue('--text-tertiary').trim() || '#666'
+  const borderColor = cs.getPropertyValue('--border').trim() || '#333'
+  const textPrimary = cs.getPropertyValue('--text-primary').trim() || '#fff'
+  const pretextColor = '#22c55e'
+  const domColor = '#888'
+
+  const pretextKey = yKey + 'Pretext'
+  const domKey = yKey + 'Dom'
+  const allVals = data.flatMap(d => [d[pretextKey], d[domKey]])
+  const yMax = Math.ceil(Math.max(...allVals) * 1.15)
+  const xValues = data.map(d => d.count)
+  const xMin = xValues[0]
+  const xMax = xValues[xValues.length - 1]
+
+  const xScale = (v) => pad.left + (Math.log(v) - Math.log(xMin)) / (Math.log(xMax) - Math.log(xMin)) * cw
+  const yScale = (v) => pad.top + (1 - v / yMax) * ch
+
+  // Grid lines
+  const gridSteps = 5
+  ctx.strokeStyle = borderColor
+  ctx.lineWidth = 0.5
+  for (let i = 0; i <= gridSteps; i++) {
+    const v = (yMax / gridSteps) * i
+    const y = yScale(v)
+    ctx.beginPath()
+    ctx.moveTo(pad.left, y)
+    ctx.lineTo(pad.left + cw, y)
+    ctx.stroke()
+  }
+
+  // Zero line
+  ctx.strokeStyle = borderColor
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(pad.left, yScale(0))
+  ctx.lineTo(pad.left + cw, yScale(0))
+  ctx.stroke()
+
+  // Draw line helper
+  const drawLine = (key, color) => {
+    ctx.strokeStyle = color
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    data.forEach((d, i) => {
+      const x = xScale(d.count)
+      const y = yScale(d[key])
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    })
+    ctx.stroke()
+
+    // Data points
+    data.forEach(d => {
+      const x = xScale(d.count)
+      const y = yScale(d[key])
+      ctx.beginPath()
+      ctx.arc(x, y, 4, 0, Math.PI * 2)
+      ctx.fillStyle = color
+      ctx.fill()
+    })
+  }
+
+  drawLine(domKey, domColor)
+  drawLine(pretextKey, pretextColor)
+
+  // X axis labels
+  ctx.fillStyle = textTertiary
+  ctx.font = '12px Inter'
+  ctx.textAlign = 'center'
+  data.forEach(d => {
+    const label = d.count >= 1000 ? (d.count / 1000) + 'k' : d.count + ''
+    ctx.fillText(label, xScale(d.count), pad.top + ch + 20)
+  })
+  ctx.fillText('消息条数', pad.left + cw / 2, pad.top + ch + 40)
+
+  // Y axis labels
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'middle'
+  for (let i = 0; i <= gridSteps; i++) {
+    const v = (yMax / gridSteps) * i
+    ctx.fillText(Math.round(v) + '', pad.left - 8, yScale(v))
+  }
+  ctx.save()
+  ctx.translate(12, pad.top + ch / 2)
+  ctx.rotate(-Math.PI / 2)
+  ctx.textAlign = 'center'
+  ctx.fillText(yLabel, 0, 0)
+  ctx.restore()
+
+  // Title
+  ctx.fillStyle = textPrimary
+  ctx.font = '500 14px Inter'
+  ctx.textAlign = 'left'
+  ctx.fillText(title, pad.left, 20)
+
+  // Legend
+  const legendX = pad.left + cw - 160
+  const legendY = 14
+  ctx.font = '12px Inter'
+  // Pretext
+  ctx.fillStyle = pretextColor
+  ctx.beginPath()
+  ctx.arc(legendX, legendY, 4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillText('Pretext', legendX + 10, legendY + 4)
+  // DOM
+  ctx.fillStyle = domColor
+  ctx.beginPath()
+  ctx.arc(legendX + 80, legendY, 4, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.fillText('原生 DOM', legendX + 90, legendY + 4)
+
+  // Store metadata for hover detection
+  canvas._chartMeta = { data, pretextKey, domKey, xScale, yScale, pretextColor, domColor, pad, cw, ch }
+}
+
+function handleChartHover(e, canvas, tooltip) {
+  const meta = canvas._chartMeta
+  if (!meta || !tooltip) return
+
+  const rect = canvas.getBoundingClientRect()
+  const mx = e.clientX - rect.left
+  const my = e.clientY - rect.top
+
+  let closest = null
+  let minDist = 20
+
+  for (const d of meta.data) {
+    for (const key of [meta.pretextKey, meta.domKey]) {
+      const x = meta.xScale(d.count)
+      const y = meta.yScale(d[key])
+      const dist = Math.sqrt((mx - x) ** 2 + (my - y) ** 2)
+      if (dist < minDist) {
+        minDist = dist
+        const label = key.includes('Pretext') ? 'Pretext' : '原生 DOM'
+        closest = { x, y, label, value: d[key], count: d.count }
+      }
+    }
+  }
+
+  if (closest) {
+    tooltip.style.display = 'block'
+    tooltip.textContent = `${closest.label} · ${closest.count} 条 · ${closest.value.toFixed(1)} ms`
+    // Position tooltip, keep within canvas bounds
+    let tx = closest.x + 12
+    let ty = closest.y - 32
+    if (tx + 180 > rect.width) tx = closest.x - 180
+    if (ty < 0) ty = closest.y + 12
+    tooltip.style.left = tx + 'px'
+    tooltip.style.top = ty + 'px'
+  } else {
+    tooltip.style.display = 'none'
+  }
+}
+
 function BatchTest() {
-  const [count, setCount] = useState(1000)
-  const [result, setResult] = useState(null)
+  const [results, setResults] = useState([])
   const [running, setRunning] = useState(false)
+  const [progress, setProgress] = useState('')
+  const chart1Ref = useRef(null)
+  const chart2Ref = useRef(null)
+  const tooltip1Ref = useRef(null)
+  const tooltip2Ref = useRef(null)
 
   const runTest = useCallback(() => {
     setRunning(true)
-    setResult(null)
+    setResults([])
+    setProgress('')
 
-    // Use setTimeout so the UI updates before blocking
-    setTimeout(() => {
-      const msgs = generateMessages(count)
-      const containerWidth = 680
+    let idx = 0
+    const collected = []
 
-      // Pretext measurement
-      const t0 = performance.now()
-      for (const msg of msgs) {
-        const prepared = prepare(msg, FONT)
-        layout(prepared, containerWidth, LINE_HEIGHT)
+    const runNext = () => {
+      if (idx >= BATCH_COUNTS.length) {
+        setResults(collected)
+        setRunning(false)
+        setProgress('')
+        return
       }
-      const t1 = performance.now()
-      const pretextMs = t1 - t0
+      const count = BATCH_COUNTS[idx]
+      setProgress(`测试中：${count} 条消息 (${idx + 1}/${BATCH_COUNTS.length})`)
+      setTimeout(() => {
+        const result = runBatchForCount(count)
+        collected.push(result)
+        setResults([...collected])
+        idx++
+        runNext()
+      }, 50)
+    }
+    runNext()
+  }, [])
 
-      // DOM measurement
-      const container = document.createElement('div')
-      container.style.cssText = `position:absolute;visibility:hidden;width:${containerWidth}px;font:400 14px/1.6 Inter;word-wrap:break-word;overflow-wrap:break-word;`
-      document.body.appendChild(container)
+  // Draw charts when results complete
+  useEffect(() => {
+    if (results.length < BATCH_COUNTS.length) return
+    drawChart(chart1Ref.current, results, 'round1', '首次计算耗时', '耗时 (ms)')
+    drawChart(chart2Ref.current, results, 'round2', '重排计算耗时（核心优势）', '耗时 (ms)')
+  }, [results])
 
-      const t2 = performance.now()
-      for (const msg of msgs) {
-        container.textContent = msg
-        container.offsetHeight // force reflow
-      }
-      const t3 = performance.now()
-      const domMs = t3 - t2
-
-      document.body.removeChild(container)
-
-      const speedup = domMs / pretextMs
-
-      setResult({ pretextMs, domMs, speedup, count: msgs.length })
-      setRunning(false)
-    }, 50)
-  }, [count])
+  const lastResult = results.length === BATCH_COUNTS.length ? results[results.length - 1] : null
+  const speedup = lastResult ? (lastResult.round2Dom / lastResult.round2Pretext).toFixed(1) : null
 
   return (
     <div className={styles.section}>
-      <div className={styles.controlsRow}>
-        <div className={styles.field}>
-          <label className={styles.label}>消息条数</label>
-          <input
-            type="number"
-            className={styles.numberInput}
-            value={count}
-            min={10}
-            max={10000}
-            onInput={(e) => setCount(Math.max(10, Number(e.target.value) || 10))}
-            disabled={running}
-          />
-        </div>
-        <button className={styles.actionButton} onClick={runTest} disabled={running}>
-          {running ? '测试中...' : '运行测试'}
-        </button>
-      </div>
+      <button className={styles.actionButton} onClick={runTest} disabled={running}>
+        {running ? progress || '测试中...' : results.length > 0 ? '重新运行测试' : '运行测试'}
+      </button>
 
-      {result && (
-        <div className={styles.batchResults}>
-          <div className={styles.batchRow}>
-            <span className={styles.batchLabel}>Pretext</span>
-            <span className={styles.batchValue}>
-              {result.pretextMs.toFixed(1)} ms（0 个 DOM 节点）
-            </span>
+      {results.length > 0 && (
+        <>
+          <div className={styles.chartWrap}>
+            <canvas
+              ref={chart1Ref}
+              className={styles.chartCanvas}
+              onMouseMove={(e) => handleChartHover(e, chart1Ref.current, tooltip1Ref.current)}
+              onMouseLeave={() => { if (tooltip1Ref.current) tooltip1Ref.current.style.display = 'none' }}
+            />
+            <div ref={tooltip1Ref} className={styles.chartTooltip} />
           </div>
-          <div className={styles.batchRow}>
-            <span className={styles.batchLabel}>原生 DOM</span>
-            <span className={styles.batchValue}>
-              {result.domMs.toFixed(1)} ms（{result.count} 个 DOM 节点）
-            </span>
+
+          <div className={styles.chartWrap}>
+            <canvas
+              ref={chart2Ref}
+              className={styles.chartCanvas}
+              onMouseMove={(e) => handleChartHover(e, chart2Ref.current, tooltip2Ref.current)}
+              onMouseLeave={() => { if (tooltip2Ref.current) tooltip2Ref.current.style.display = 'none' }}
+            />
+            <div ref={tooltip2Ref} className={styles.chartTooltip} />
           </div>
-          <div className={styles.summary}>
-            <span className={styles.match}>
-              Pretext 快 {result.speedup.toFixed(1)} 倍
-            </span>
-          </div>
+        </>
+      )}
+
+      {lastResult && (
+        <div className={styles.summary}>
+          在 10000 条消息下，重排计算 <span className={styles.match}>Pretext 快 {speedup} 倍</span>
         </div>
       )}
     </div>

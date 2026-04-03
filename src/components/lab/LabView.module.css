@@ -304,50 +304,22 @@
   font-weight: 500;
 }
 
-/* === Tab 4: Batch results === */
+/* === Tab 4: Chart wrapper + tooltip === */
 
-.batchResults {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.chartWrap {
+  position: relative;
 }
 
-.batchRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: var(--bg-secondary);
-  border-radius: 8px;
-  font-size: 14px;
-  color: var(--text-primary);
-}
-
-.batchLabel {
-  font-weight: 500;
-}
-
-.batchValue {
-  font-family: var(--font-mono);
-  font-size: 13px;
-}
-
-/* === Tab 4: count input === */
-
-.numberInput {
-  width: 100px;
-  padding: 8px 12px;
+.chartTooltip {
+  display: none;
+  position: absolute;
+  padding: 4px 8px;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 8px;
-  color: var(--text-primary);
   font-family: var(--font-mono);
-  font-size: 14px;
-  outline: none;
-  transition: all 150ms ease;
-}
-
-.numberInput:focus {
-  border-color: var(--border-hover);
-  box-shadow: 0 0 0 2px var(--bg-tertiary);
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  pointer-events: none;
 }
