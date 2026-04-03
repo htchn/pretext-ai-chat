@@ -1,3 +1,5 @@
+/* === Layout === */
+
 .lab {
   flex: 1;
   display: flex;
@@ -67,33 +69,15 @@
   padding: 32px 48px;
 }
 
-.placeholder {
-  font-size: 14px;
-  color: var(--text-tertiary);
-  width: 100%;
-  max-width: 900px;
-}
+/* === Shared === */
 
-.engineTest {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.controls {
+.section {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.renderArea {
-  width: 100%;
-  display: flex;
-  justify-content: center;
 }
 
 .field {
@@ -121,6 +105,7 @@
   outline: none;
   resize: vertical;
   transition: all 150ms ease;
+  box-sizing: border-box;
 }
 
 .textarea:focus {
@@ -174,49 +159,6 @@
   border-radius: 2px;
 }
 
-.metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.metricRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.mono {
-  font-family: var(--font-mono);
-  font-size: 12px;
-}
-
-.render {
-  outline: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-primary);
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-.streamingHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.streamingActions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
 .actionButton {
   padding: 8px 16px;
   border: 1px solid var(--border);
@@ -233,29 +175,80 @@
   background-color: var(--bg-tertiary);
 }
 
-.toggleLabel {
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.match {
+  color: #22c55e;
+}
+
+.mismatch {
+  color: #ef4444;
+}
+
+/* === Summary bar (shared across tabs) === */
+
+.summary {
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* === Tab 1: Accuracy chart === */
+
+.chartCanvas {
+  width: 100%;
+  height: 300px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--bg-secondary);
+}
+
+/* === Tab 2 & 3: Dual panel === */
+
+.dualPanel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panelHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.panelMetric {
   font-size: 12px;
   color: var(--text-secondary);
-  cursor: pointer;
 }
 
-.toggleLabel input[type="checkbox"] {
-  accent-color: var(--text-primary);
+.panelMetric strong {
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.streamingProgress {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-family: var(--font-mono);
-}
-
-.streamingRender {
+.panelRender {
   outline: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.6;
@@ -266,84 +259,95 @@
   box-sizing: border-box;
 }
 
-.dualPanel {
-  width: 100%;
+/* === Tab 2: Streaming controls row === */
+
+.controlsRow {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.panel {
-  width: 100%;
+.controlsRow .field {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+/* === Tab 3: Message selector === */
+
+.messageTabs {
   display: flex;
-  flex-direction: column;
   gap: 4px;
 }
 
-.panelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 auto;
-}
-
-.panelTitle {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.panelMetrics {
-  display: flex;
-  gap: 16px;
-  font-size: 12px;
+.messageTab {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none;
   color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 150ms ease;
 }
 
-.panelMetrics strong {
-  font-weight: 600;
+.messageTab:hover {
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.panelRender {
+.messageTab.active {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* === Tab 4: Batch results === */
+
+.batchResults {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.batchRow {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-}
-
-.anchor {
-  height: 0;
-  border-top: 1px solid var(--border);
-  margin: 4px 0;
-}
-
-.summary {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  padding: 12px 16px;
   background-color: var(--bg-secondary);
   border-radius: 8px;
-}
-
-.summaryTitle {
   font-size: 14px;
-  font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 4px;
 }
 
-.summaryRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-secondary);
+.batchLabel {
+  font-weight: 500;
 }
 
-.match {
-  color: #22c55e;
+.batchValue {
+  font-family: var(--font-mono);
+  font-size: 13px;
 }
 
-.mismatch {
-  color: #ef4444;
+/* === Tab 4: count input === */
+
+.numberInput {
+  width: 100px;
+  padding: 8px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  outline: none;
+  transition: all 150ms ease;
+}
+
+.numberInput:focus {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 0 2px var(--bg-tertiary);
 }

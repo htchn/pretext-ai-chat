@@ -103,4 +103,43 @@ export function getLines(text, maxWidth) {
   return layoutWithLines(prepared, maxWidth, LINE_HEIGHT)
 }
 
+/**
+ * Find the narrowest width that keeps the same line count as maxWidth.
+ * Uses MESSAGE_FONT (15px Inter) to match message rendering.
+ * Returns the shrinkwrapped width (number).
+ */
+export function shrinkwrapMessage(text, maxWidth) {
+  if (!text) return 0
+
+  const prepared = prepareWithSegments(text, MESSAGE_FONT)
+
+  let lineCountAtMax = 0
+  walkLineRanges(prepared, maxWidth, () => { lineCountAtMax++ })
+
+  if (lineCountAtMax <= 0) return 0
+
+  if (lineCountAtMax === 1) {
+    let lineWidth = 0
+    walkLineRanges(prepared, maxWidth, (line) => { lineWidth = line.width })
+    return Math.ceil(lineWidth)
+  }
+
+  let lo = 0
+  let hi = maxWidth
+
+  while (hi - lo > 1) {
+    const mid = (lo + hi) / 2
+    let lines = 0
+    walkLineRanges(prepared, mid, () => { lines++ })
+
+    if (lines <= lineCountAtMax) {
+      hi = mid
+    } else {
+      lo = mid
+    }
+  }
+
+  return Math.ceil(hi)
+}
+
 export { FONT, LINE_HEIGHT }

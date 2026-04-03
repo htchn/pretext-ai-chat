@@ -56,18 +56,21 @@
 - [x] `pretext-engine.js`：封装 prepare / layout / shrinkwrap 高层 API
 - [x] 确保 font string 与 CSS 声明一致（`'14px Inter'` + line-height 22.4px）
 - [x] 基本测试：给一段文本，输出正确的高度
+- [ ] Lab Tab 1 精度测试：多宽度折线图对比 Pretext 预测 vs DOM 实际高度
 
 ### 2.2 流式零抖动
 - [x] 修改 StreamingMessage：每个 token 到达前用 Pretext 预算高度
 - [x] 先设容器高度，再写入文本
 - [x] 验证：流式输出时页面不再跳动
 - [x] 自动滚动到底部保持跟随
+- [x] Lab Tab 2 流式测试：上下两栏对比，显示高度跳变次数
 
 ### 2.3 Shrinkwrap 智能气泡
-- [ ] 实现 shrinkwrap 函数：二分查找最窄宽度（保持行数不变）
-- [ ] Message 组件接入：AI 消息气泡宽度由 shrinkwrap 决定
-- [ ] 用户消息同样适用
-- [ ] 验证：短消息气泡明显比之前窄，长消息不变
+- [x] 实现 shrinkwrap 函数：二分查找最窄宽度（保持行数不变）
+- [x] Message 组件接入：AI 消息气泡宽度由 shrinkwrap 决定
+- [x] 用户消息同样适用
+- [x] 验证：短消息气泡明显比之前窄，长消息不变
+- [x] Lab Tab 3 Shrinkwrap 测试：上下两栏对比原生宽度 vs 最窄宽度
 
 ### 2.4 虚拟列表
 - [ ] MessageList 改为虚拟滚动
@@ -75,6 +78,7 @@
 - [ ] 只渲染可视区域 ± buffer 的消息 DOM
 - [ ] 滚动时根据 heights 精确计算 translateY
 - [ ] 验证：加载 1000+ 条消息，滚动依然流畅
+- [ ] Lab Tab 4 批量测试：1000 条消息高度计算耗时对比
 
 ---
 
