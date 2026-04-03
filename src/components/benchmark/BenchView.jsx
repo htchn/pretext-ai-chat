@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import { X, Type } from 'lucide-preact'
 import { prepare, layout } from '@chenglou/pretext'
 import { FONT, LINE_HEIGHT } from '../../lib/pretext-engine'
-import { createFPSTracker } from '../../lib/metrics'
 import { renderMarkdownToHTML } from '../../lib/markdown'
 import { SAMPLES } from './samples'
 import styles from './BenchView.module.css'
@@ -21,9 +20,7 @@ export function BenchView({ onClose }) {
   const [nativeJumps, setNativeJumps] = useState(0)
   const [pretextJumps, setPretextJumps] = useState(0)
 
-  const [fps, setFps] = useState(0)
   const [nativeReflows, setNativeReflows] = useState(0)
-  const [pretextReflows, setPretextReflows] = useState(0)
 
   const nativeRef = useRef(null)
   const pretextRef = useRef(null)
@@ -31,14 +28,12 @@ export function BenchView({ onClose }) {
   const nativeJumpsRef = useRef(0)
   const pretextJumpsRef = useRef(0)
   const nativeReflowsRef = useRef(0)
-  const fpsTracker = useRef(createFPSTracker())
 
   const text = customText !== null ? customText : SAMPLES[sampleIdx].text
 
   const reset = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = null
-    fpsTracker.current.stop()
     setRunning(false)
     setDone(false)
     setCharIndex(0)
@@ -47,9 +42,7 @@ export function BenchView({ onClose }) {
     nativeReflowsRef.current = 0
     setNativeJumps(0)
     setPretextJumps(0)
-    setFps(0)
     setNativeReflows(0)
-    setPretextReflows(0)
     if (nativeRef.current) {
       nativeRef.current.style.height = ''
       nativeRef.current.innerHTML = ''
@@ -68,7 +61,6 @@ export function BenchView({ onClose }) {
 
     setRunning(true)
     setDone(false)
-    fpsTracker.current.start()
 
     let idx = 0
     const src = text
@@ -79,8 +71,6 @@ export function BenchView({ onClose }) {
       if (idx > src.length) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
-        fpsTracker.current.stop()
-        setFps(fpsTracker.current.value)
         setRunning(false)
         setDone(true)
         return
@@ -110,14 +100,12 @@ export function BenchView({ onClose }) {
       setNativeJumps(nativeJumpsRef.current)
       setPretextJumps(pretextJumpsRef.current)
       setNativeReflows(nativeReflowsRef.current)
-      setFps(fpsTracker.current.value)
     }, intervalMs)
   }, [text, speed, reset])
 
   // Cleanup on unmount
   useEffect(() => () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
-    fpsTracker.current.stop()
   }, [])
 
   // Reset when sample changes

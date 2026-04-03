@@ -115,7 +115,7 @@
 - [x] `npm run build` 确认产出正常
 - [x] GitHub repo 创建（htchn/pretext-display 或最终产品名）
 - [x] GitHub Pages 部署配置（vite.config.js 设置 base）
-- [ ] 验证线上可访问
+- [x] 验证线上可访问
 
 ### 3.6 README
 - [ ] 项目简介 + 截图/GIF
