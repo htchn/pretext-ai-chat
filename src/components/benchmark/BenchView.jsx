@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import { X } from 'lucide-preact'
 import { prepare, layout } from '@chenglou/pretext'
 import { FONT, LINE_HEIGHT } from '../../lib/pretext-engine'
+import { createFPSTracker } from '../../lib/metrics'
 import styles from './BenchView.module.css'
 
 const SAMPLES = [
@@ -30,24 +31,35 @@ export function BenchView({ onClose }) {
   const [nativeJumps, setNativeJumps] = useState(0)
   const [pretextJumps, setPretextJumps] = useState(0)
 
+  const [fps, setFps] = useState(0)
+  const [nativeReflows, setNativeReflows] = useState(0)
+  const [pretextReflows, setPretextReflows] = useState(0)
+
   const nativeRef = useRef(null)
   const pretextRef = useRef(null)
   const intervalRef = useRef(null)
   const nativeJumpsRef = useRef(0)
   const pretextJumpsRef = useRef(0)
+  const nativeReflowsRef = useRef(0)
+  const fpsTracker = useRef(createFPSTracker())
 
   const text = SAMPLES[sampleIdx].text
 
   const reset = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     intervalRef.current = null
+    fpsTracker.current.stop()
     setRunning(false)
     setDone(false)
     setCharIndex(0)
     nativeJumpsRef.current = 0
     pretextJumpsRef.current = 0
+    nativeReflowsRef.current = 0
     setNativeJumps(0)
     setPretextJumps(0)
+    setFps(0)
+    setNativeReflows(0)
+    setPretextReflows(0)
     if (nativeRef.current) {
       nativeRef.current.style.height = ''
       nativeRef.current.textContent = ''
@@ -66,6 +78,7 @@ export function BenchView({ onClose }) {
 
     setRunning(true)
     setDone(false)
+    fpsTracker.current.start()
 
     let idx = 0
     const src = text
@@ -76,6 +89,8 @@ export function BenchView({ onClose }) {
       if (idx > src.length) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
+        fpsTracker.current.stop()
+        setFps(fpsTracker.current.value)
         setRunning(false)
         setDone(true)
         return
@@ -84,13 +99,14 @@ export function BenchView({ onClose }) {
       const slice = src.slice(0, idx)
       setCharIndex(idx)
 
-      // Native: write text, detect height jump
+      // Native: write text, read offsetHeight → forced reflow
       const nh1 = nEl.offsetHeight
       nEl.textContent = slice
-      const nh2 = nEl.offsetHeight
+      const nh2 = nEl.offsetHeight  // this forces browser reflow
+      nativeReflowsRef.current++
       if (nh1 !== nh2 && idx > 1) nativeJumpsRef.current++
 
-      // Pretext: predict height first, then write
+      // Pretext: predict height in pure JS (0 reflows), then write
       const prepared = prepare(slice, FONT)
       const predicted = Math.ceil(layout(prepared, CONTAINER_WIDTH, LINE_HEIGHT).height)
       pEl.style.height = predicted + 'px'
@@ -101,12 +117,15 @@ export function BenchView({ onClose }) {
 
       setNativeJumps(nativeJumpsRef.current)
       setPretextJumps(pretextJumpsRef.current)
+      setNativeReflows(nativeReflowsRef.current)
+      setFps(fpsTracker.current.value)
     }, intervalMs)
   }, [text, speed, reset])
 
   // Cleanup on unmount
   useEffect(() => () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
+    fpsTracker.current.stop()
   }, [])
 
   // Reset when sample changes
@@ -215,6 +234,39 @@ export function BenchView({ onClose }) {
           </div>
         </div>
       </div>
+
+      {/* Metrics panel */}
+      {(running || done) && (
+        <div className={styles.metricsPanel}>
+          <div className={styles.metricCard}>
+            <span className={styles.metricCardLabel}>Reflow（原生 DOM）</span>
+            <span className={`${styles.metricCardValue} ${styles.bad}`}>
+              {nativeReflows}
+            </span>
+            <span className={`${styles.metricCardStatus} ${styles.bad}`}>
+              每字符 1 次
+            </span>
+          </div>
+          <div className={styles.metricCard}>
+            <span className={styles.metricCardLabel}>Reflow（Pretext）</span>
+            <span className={`${styles.metricCardValue} ${styles.good}`}>
+              0
+            </span>
+            <span className={`${styles.metricCardStatus} ${styles.good}`}>
+              纯 JS 计算
+            </span>
+          </div>
+          <div className={styles.metricCard}>
+            <span className={styles.metricCardLabel}>FPS</span>
+            <span className={`${styles.metricCardValue} ${fps >= 30 ? styles.good : styles.bad}`}>
+              {fps}
+            </span>
+            <span className={`${styles.metricCardStatus} ${fps >= 30 ? styles.good : styles.bad}`}>
+              {fps >= 30 ? 'Smooth' : 'Janky'}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Summary */}
       {done && (

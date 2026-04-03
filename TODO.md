@@ -96,10 +96,10 @@
 - [x] 预设文本样本切换按钮（中文 / 英文 / 中英混排）
 
 ### 3.2 指标采集
-- [ ] CLS 采集：PerformanceObserver 监听 layout-shift
-- [ ] Reflow 计数：手动统计 offsetHeight 读取次数
-- [ ] FPS 计算：requestAnimationFrame 帧间隔
-- [ ] MetricCard 组件：实时显示，红/绿色区分好坏
+- ~~CLS 采集~~ （测试环境下采集不到有意义数据，已移除）
+- [x] Reflow 计数：手动统计 offsetHeight 读取次数
+- [x] FPS 计算：requestAnimationFrame 帧间隔
+- [x] MetricCard 组件：实时显示，红/绿色区分好坏
 
 ### 3.3 预设文本样本
 - [ ] 样本 1：中文 AI 问答（200-300 字，有段落）
