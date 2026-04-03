@@ -56,7 +56,7 @@
 - [x] `pretext-engine.js`：封装 prepare / layout / shrinkwrap 高层 API
 - [x] 确保 font string 与 CSS 声明一致（`'14px Inter'` + line-height 22.4px）
 - [x] 基本测试：给一段文本，输出正确的高度
-- [x] Lab Tab 1 精度测试：多宽度折线图对比 Pretext 预测 vs DOM 实际高度
+- [ ] Lab Tab 1 精度测试：多宽度折线图对比 Pretext 预测 vs DOM 实际高度
 
 ### 2.2 流式零抖动
 - [x] 修改 StreamingMessage：每个 token 到达前用 Pretext 预算高度
@@ -87,13 +87,13 @@
 目标：加入验证工具，完善产品，准备部署。
 
 ### 3.1 Benchmark 模式
-- [ ] 侧边栏底部加实验室图标（Flask / Beaker from Lucide）
-- [ ] Hover 提示 "Rendering Lab"
-- [ ] BenchView 布局：控制栏 + 左右分屏 + 指标面板
-- [ ] 左侧面板：原生 DOM 渲染（textContent += token）
-- [ ] 右侧面板：Pretext 渲染（预算高度后写入）
-- [ ] Token 速度滑块（5-80 token/s，默认 30）
-- [ ] 预设文本样本切换按钮（中文 / 英文 / 中英混排）
+- [x] 侧边栏底部加实验室图标（Flask / Beaker from Lucide）
+- [x] Hover 提示 "Rendering Lab"
+- [x] BenchView 布局：控制栏 + 左右分屏 + 指标面板
+- [x] 左侧面板：原生 DOM 渲染（textContent += token）
+- [x] 右侧面板：Pretext 渲染（预算高度后写入）
+- [x] Token 速度滑块（5-80 token/s，默认 30）
+- [x] 预设文本样本切换按钮（中文 / 英文 / 中英混排）
 
 ### 3.2 指标采集
 - [ ] CLS 采集：PerformanceObserver 监听 layout-shift
@@ -127,7 +127,7 @@
 
 ## Phase 4: 加分项（时间允许再做）
 
-- [x] 消息 Markdown 渲染（加粗、代码块、列表）
+- [ ] 消息 Markdown 渲染（加粗、代码块、列表）
 - [ ] 代码块语法高亮
 - [ ] 导出对话为 Markdown 文件
 - [ ] Benchmark 结果截图/导出
